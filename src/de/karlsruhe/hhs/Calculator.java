@@ -1,79 +1,72 @@
 package de.karlsruhe.hhs;
 
-import java.text.MessageFormat;
-import java.util.Scanner;
+import java.util.LinkedList;
 
 public class Calculator {
-	private static Calculator cal = new Calculator();
+	private LinkedList<Integer> fifo = new LinkedList<Integer>();
 	
-	public static void main (String[] args) {
-		String mes = "Please choose if you would like to enter a binary(1) or a decimal(2) digit (\'end\' to exit program): ";
-		String choice = "";
-		System.out.print(mes);
-		
-		choice = cal.readLine();
-		if (choice.equals("1")) {
-			System.out.println(MessageFormat.format("Your binary digit you entered is {0} to the base ten.", binary()));
-		} else if (choice.equals("2")) {
-			decimal();
-		} else if (choice.equals("end") || choice.equals("End")) {
-			;
+	Digit binaryDecoder(String binary) {
+		int decimal = 0;
+		String sign = binary.substring(0,1);
+		if (sign.equals("1")) {
+			sign = "-";
+			decimal = (int) Math.pow(2,(binary.length() -1));
+			int tooMuch = analyseBinary(binary.substring(1,binary.length()));
+			decimal -= tooMuch;
 		} else {
-			System.out.print("Try again. ");	
-			main(args);
+			sign = "";
+			decimal = analyseBinary(binary);
+			
 		}
+		Digit result = new Digit(binary, sign + Integer.toString(decimal));
+		return result;
 		
 	}
-	
-	private static String binary() {
-		System.out.print("Please enter a 8 byte binary digit: ");
-		String digit = cal.readLine();
-		String output = "";
-		int intOfOutput = 0;
-			
-		if (digit.matches("[0-1]{8}")) {
-			String plusMinus = digit.substring(0,1);
-			if (plusMinus.equals("1")) {
-				output = "-";
-				intOfOutput += 1;
-			}
-			for (int i = 1; i < digit.length(); i++) {
-				if (digit.substring(i, i+1).equals("1")) {
-					intOfOutput += Integer.valueOf(digit.substring(i, (i + 1))) * (int)Math.pow(2,(digit.length() -1) -i);
-				} else continue;
-				
-			}
-			/*for (int i = 6; i >= 0; i--) {
-				for (int j = 1; j < 8; j++) {
-					if (digit.substring(j, j+1).equals("1")) {
-						System.out.println(j);
-						System.out.println(intOfOutput);
-						intOfOutput = intOfOutput + (int)Math.pow(2, i);
-						System.out.println("MathPower: " + Math.pow(2, i));
-					} else continue;
-				}
-			}*/
-			output = output + intOfOutput;
-			
+
+	Digit binaryEncoder(String decimal) {
+		String binary = "";
+		if (decimal.substring(0,1).equals("-")) {
+			int decimalInt = 1 + Integer.valueOf(decimal.substring(1,decimal.length()));
+			binary = analyseDecimal(decimalInt,1);
 		} else {
-			System.out.print("Try again. ");
-			binary();
+			int decimalInt = Integer.valueOf(decimal);
+			binary = analyseDecimal(decimalInt,0);
 		}
-		return output;
+		Digit result = new Digit(binary, decimal);
+		return result;
+	}
+	
+	private int analyseBinary(String binary) {
+		int decimal = 0;
+		for (int i = 0; i < binary.length(); i++) {
+			if (binary.substring(i, i+1).equals("1")) {
+				int validity = Integer.valueOf(binary.substring(i, (i + 1)));
+				int power = (int) Math.pow(2,(binary.length() -1) -i);
+				decimal += validity * power;
+			}
+		}
+		return decimal;
 		
 	}
 	
-	private static void decimal() {
-		String decimal = cal.readLine();
-		
-		
-	}
-	
-	public String readLine() {
-		Scanner sc = new Scanner(System.in);
-		String input = sc.next();
-		//sc.close();
-		return input;
+	private String analyseDecimal(int decimal, int sign) {
+		int remaining;
+		String binary = "";
+		while (decimal > 1) {
+			remaining = decimal % 2;
+			fifo.add(remaining);
+			decimal >>= 1;
+		}
+		fifo.add(decimal);
+		int missingLength = 16  - fifo.size();
+		for (int i = missingLength; i > 0; i--) {
+			fifo.add(sign);
+		}
+		while (! fifo.isEmpty()) {
+			binary += fifo.removeLast();
+		}
+		binary = binary.substring(0,8) + " " + binary.substring(8,16);
+		return binary;
 	}
 
 }
