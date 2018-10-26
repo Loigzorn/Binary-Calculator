@@ -3,7 +3,7 @@ package de.karlsruhe.hhs;
 import java.util.LinkedList;
 
 public class Calculator {
-	private LinkedList<Integer> fifo = new LinkedList<Integer>();
+	private LinkedList<Integer> fifoOfDigit = new LinkedList<Integer>();
 	
 	Digit binaryDecoder(String binary) {
 		int decimal = 0;
@@ -39,10 +39,9 @@ public class Calculator {
 	private int analyseBinary(String binary) {
 		int decimal = 0;
 		for (int i = 0; i < binary.length(); i++) {
-			if (binary.substring(i, i+1).equals("1")) {
-				int validity = Integer.valueOf(binary.substring(i, (i + 1)));
+			if (binary.substring(i, i + 1).equals("1")) {
 				int power = (int) Math.pow(2,(binary.length() -1) -i);
-				decimal += validity * power;
+				decimal += power;
 			}
 		}
 		return decimal;
@@ -54,16 +53,16 @@ public class Calculator {
 		String binary = "";
 		while (decimal > 1) {
 			remaining = decimal % 2;
-			fifo.add(remaining);
+			fifoOfDigit.add(remaining);
 			decimal >>= 1;
 		}
-		fifo.add(decimal);
-		int missingLength = 16  - fifo.size();
+		fifoOfDigit.add(decimal);
+		int missingLength = 16  - fifoOfDigit.size();
 		for (int i = missingLength; i > 0; i--) {
-			fifo.add(sign);
+			fifoOfDigit.add(sign);
 		}
-		while (! fifo.isEmpty()) {
-			binary += fifo.removeLast();
+		while (! fifoOfDigit.isEmpty()) {
+			binary += fifoOfDigit.removeLast();
 		}
 		binary = binary.substring(0,8) + " " + binary.substring(8,16);
 		return binary;
