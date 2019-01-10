@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 public class ConsolInteraction {
 	
-	private Calculator calculator = new Calculator();
+	private Calculator calculator = new Calculator(16);
 	private final String startingMeassage = "Please choose if you like to enter a binary(1) or a decimal(2) digit: ";
 	private final String errorMessage = "Your format was incorreced and the interaction has ended. Feel free to try again.";
 	private final String resultMessage = "You entered {0}, to the base {1} and in the two’s complement this is {2}.";
@@ -80,7 +80,9 @@ public class ConsolInteraction {
 	
 	private String decimalToBinaryFormatter(String digit) {
 		Digit answer = calculator.binaryEncoder(digit);
-		return MessageFormat.format(resultMessage, answer.getDecimal(), base.toString().toLowerCase(), answer.getBinary());
+		String binary = answer.getBinary();
+		binary = MessageFormat.format("{0} {1}", binary.substring(0,8), binary.substring(8,16));
+		return MessageFormat.format(resultMessage, answer.getDecimal(), base.toString().toLowerCase(), binary);
 	}
 	
 	private String requestToEnterDigit(Base base) {

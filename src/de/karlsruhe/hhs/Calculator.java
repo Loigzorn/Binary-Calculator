@@ -3,7 +3,13 @@ package de.karlsruhe.hhs;
 import java.util.LinkedList;
 
 public class Calculator {
+	
+	private int bits;
 	private LinkedList<Integer> fifoOfDigit = new LinkedList<Integer>();
+	
+	Calculator(int bitsToRepresent) {
+		this.bits = bitsToRepresent;
+	}
 	
 	Digit binaryDecoder(String binary) {
 		int decimal = 0;
@@ -20,17 +26,17 @@ public class Calculator {
 		}
 		Digit result = new Digit(binary, sign + Integer.toString(decimal));
 		return result;
-		
 	}
 
 	Digit binaryEncoder(String decimal) {
 		String binary = "";
-		if (decimal.substring(0,1).equals("-")) {
-			int decimalInt = 1 + Integer.valueOf(decimal.substring(1,decimal.length()));
-			binary = analyseDecimal(decimalInt,1);
+		String sign = decimal.substring(0,1);
+		if (sign.equals("-")) {
+			int decimalAsInt = Integer.valueOf(decimal.substring(1,decimal.length()));
+			binary = analyseDecimal(decimalAsInt, 1);
 		} else {
-			int decimalInt = Integer.valueOf(decimal);
-			binary = analyseDecimal(decimalInt,0);
+			int decimalAsInt = Integer.valueOf(decimal);
+			binary = analyseDecimal(decimalAsInt, 0);
 		}
 		Digit result = new Digit(binary, decimal);
 		return result;
@@ -45,26 +51,55 @@ public class Calculator {
 			}
 		}
 		return decimal;
-		
 	}
 	
 	private String analyseDecimal(int decimal, int sign) {
 		int remaining;
-		String binary = "";
-		while (decimal > 1) {
+		while (decimal > 0) {
 			remaining = decimal % 2;
 			fifoOfDigit.add(remaining);
 			decimal >>= 1;
 		}
-		fifoOfDigit.add(decimal);
-		int missingLength = 16  - fifoOfDigit.size();
-		for (int i = missingLength; i > 0; i--) {
-			fifoOfDigit.add(sign);
+		if (sign == 1) {
+			bitFlippingForNegativDecimals();
 		}
-		while (! fifoOfDigit.isEmpty()) {
+		
+		int missingLength = bits - fifoOfDigit.size();
+		String binary = addMissingLengthToBinary(missingLength, sign);
+
+		while (!fifoOfDigit.isEmpty()) {
 			binary += fifoOfDigit.removeLast();
 		}
-		binary = binary.substring(0,8) + " " + binary.substring(8,16);
+		return binary;
+	}
+	
+	private void bitFlippingForNegativDecimals() {
+		for (int i = 0; i < fifoOfDigit.size(); i++) {
+			if (fifoOfDigit.get(i) == 1) {
+				fifoOfDigit.set(i, 0);
+			} else {
+				fifoOfDigit.set(i, 1);
+			}
+		}
+		
+		int index = 0;
+		while(index < fifoOfDigit.size()) {
+			int bit = fifoOfDigit.get(index);
+			if (bit == 1) {
+				fifoOfDigit.set(index, 0);
+				index++;
+			} else {
+				fifoOfDigit.set(index, 1);
+				break;
+			}
+		}
+	}
+	
+	private String addMissingLengthToBinary(int missingLength, int sign) {
+		String binary = "";
+		for (int i = missingLength; i > 0; i--) {
+			binary += sign;
+		}
 		return binary;
 	}
 
